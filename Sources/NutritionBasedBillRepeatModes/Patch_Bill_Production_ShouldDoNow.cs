@@ -39,7 +39,7 @@ internal static class Patch_Bill_Production_ShouldDoNow
 
     internal static int GetFoodAmount(Bill_Production bill)
     {
-        var foods = GetFoods(bill);
+        var foods = CountFoods(bill);
 
         if (bill.repeatMode == ModDefs.TargetNutritionAmount)
         {
@@ -96,35 +96,87 @@ internal static class Patch_Bill_Production_ShouldDoNow
         throw new NotSupportedException($"{bill.repeatMode} is not supported.");
     }
 
-    // TODO: Should be roughly the same logic as in RecipeWorkerCounter.CountProducts, but get products instead of counting them.
-    private static IEnumerable<(ThingDef thingDef, int count)> GetFoods(Bill_Production bill)
+    // Roughly the same logic as in RecipeWorkerCounter.CountProducts, but for FoodDefs instead of the recipe product.
+    private static IEnumerable<(ThingDef thingDef, int count)> CountFoods(Bill_Production bill)
     {
+        var includeSlotGroup = bill.GetIncludeSlotGroup();
+        var isBillFastPath = includeSlotGroup == null &&
+                             bill is
+                             {
+                                 includeEquipped: false, limitToAllowedStuff: false, hpRange: { min: 0, max: 1 },
+                                 qualityRange: { min: QualityCategory.Awful, max: QualityCategory.Legendary }
+                             };
+
         foreach (var foodDef in FoodDefs)
         {
-            var includeSlotGroup = bill.GetIncludeSlotGroup();
+            var count = 0;
 
             // Fast path
-            if (foodDef.CountAsResource && includeSlotGroup == null &&
-                bill is
-                {
-                    includeEquipped: false, limitToAllowedStuff: false, hpRange: { min: 0, max: 1 },
-                    qualityRange: { min: QualityCategory.Awful, max: QualityCategory.Legendary }
-                })
+            if (foodDef.CountAsResource && isBillFastPath)
             {
-                var count = bill.Map.resourceCounter.GetCount(foodDef);
+                count = bill.Map.resourceCounter.GetCount(foodDef) + GetCarriedCount(bill, foodDef);
                 if (count > 0)
                     yield return (foodDef, count);
 
                 continue;
             }
 
-            Log.WarningOnce($"Count of {foodDef} can't be determined.", "NutritionBasedBillRepeatModes.CantCountFood".GetHashCode());
+            if (includeSlotGroup == null)
+            {
+                
+                count = bill.recipe.WorkerCounter.CountValidThings(bill.Map.listerThings.ThingsOfDef(foodDef), bill, foodDef);
 
-            //var thingsOnMap = bill.Map.listerThings.ThingsOfDef(foodDef);
-            //foreach (var thing in thingsOnMap)
-            //    if (bill.recipe.WorkerCounter.CountValidThing(thing, bill, foodDef))
-            //        yield return (foodDef, thing.stackCount);
+                count += GetCarriedCount(bill, foodDef);
 
+                if (foodDef.Minifiable)
+                {
+                    var minifiedThings = bill.Map.listerThings.ThingsInGroup(ThingRequestGroup.MinifiedThing);
+                    foreach (var thing in minifiedThings) 
+                        count += CountThing(thing, bill, foodDef);
+                }
+
+                foreach (var haulSource in bill.Map.haulDestinationManager.AllHaulSourcesListForReading)
+                foreach (var thing in haulSource.GetDirectlyHeldThings())
+                    count += CountThing(thing, bill, foodDef);
+            }
+            else
+            {
+                foreach (var thing in includeSlotGroup.HeldThings) 
+                    count += CountThing(thing, bill, foodDef);
+            }
+
+            if (bill.includeEquipped)
+            {
+                foreach (var pawn in bill.Map.mapPawns.FreeColonistsSpawned)
+                foreach (var thing in pawn.EquippedWornOrInventoryThings)
+                    count += CountThing(thing, bill, foodDef);
+            }
+
+            if (count > 0)
+                yield return (foodDef, count);
         }
+    }
+
+    private static int GetCarriedCount(Bill_Production bill, ThingDef foodDef)
+    {
+        var carriedCount = 0;
+        foreach (var pawn in bill.Map.mapPawns.FreeColonistsSpawned)
+        {
+            var carriedThing = pawn.carryTracker.CarriedThing;
+            if (carriedThing != null)
+                carriedCount += CountThing(carriedThing, bill, foodDef);
+        }
+        return carriedCount;
+    }
+
+    private static int CountThing(Thing thing, Bill_Production bill, ThingDef foodDef)
+    {
+        if (thing is MinifiedThing minifiedThing && bill.recipe.WorkerCounter.CountValidThing(minifiedThing.InnerThing, bill, foodDef))
+            return minifiedThing.stackCount * minifiedThing.InnerThing.stackCount;
+
+        if (bill.recipe.WorkerCounter.CountValidThing(thing, bill, foodDef))
+            return thing.stackCount;
+
+        return 0;
     }
 }
