@@ -5,9 +5,6 @@ namespace NutritionBasedBillRepeatModes;
 
 internal static class Extensions
 {
-    public static int FindIndexOfSequence<T>(this List<T> list, params Predicate<T>[] predicates) =>
-        FindIndexOfSequence(list, 0, predicates);
-
     public static int FindIndexOfSequence<T>(this List<T> list, int startIndex, params Predicate<T>[] predicates)
     {
         if (predicates.Length == 0)

@@ -58,39 +58,8 @@ internal static class Patch_Bill_Production_ShouldDoNow
                 return thing;
             }).ToList();
             // TODO: Extract only relevant bits of code from this method
-            return (int)DaysWorthOfFoodCalculator.ApproxDaysWorthOfFood(pawns, foodList, bill.Map.Tile,
-                IgnorePawnsInventoryMode.DontIgnore, Faction.OfPlayer);
-
-            //var foodsDict = foods.ToLookup(p => p.thingDef, p => p.count).ToDictionary(g => g.Key, g => g.Sum());
-
-            //var days = 0;
-            //float totalNutritionPerDay = 0;
-
-            //foreach (var pawn in bill.Map.mapPawns.PawnsInFaction(Faction.OfPlayer))
-            //{
-            //    IEnumerable<ThingDef> foodDefsAllowed = foodsDict.Keys;
-            //    var foodPolicy = pawn.foodRestriction?.CurrentFoodPolicy;
-            //    if (foodPolicy != null)
-            //        foodDefsAllowed = foodDefsAllowed.Where(foodPolicy.Allows);
-            //    foodDefsAllowed = pawn.IsAnimal ? 
-            //        foodDefsAllowed.OrderByDescending(foodDef => foodDef.ingestible.optimalityOffsetFeedingAnimals) : 
-            //        foodDefsAllowed.OrderByDescending(foodDef => foodDef.ingestible.optimalityOffsetHumanlikes);
-
-            //    const int ticksPerDay = 60000;
-            //    totalNutritionPerDay += ticksPerDay / (float)pawn.needs.food.TicksUntilHungryWhenFed *
-            //                            pawn.needs.food.NutritionBetweenHungryAndFed;
-
-            //    //pawn.needs.food.NutritionWanted
-            //    //pawn.needs.food.TicksUntilHungryWhenFed
-            //    //pawn.needs.food.NutritionBetweenHungryAndFed
-            //}
-
-            //if (totalNutritionPerDay == 0)
-            //    return int.MaxValue;
-
-            //var totalNutrition = foods.Sum(p => p.thingDef.ingestible.CachedNutrition * p.count);
-
-            //return (int)(totalNutrition / totalNutritionPerDay);
+            var inventoryMode = bill.includeEquipped ? IgnorePawnsInventoryMode.DontIgnore : IgnorePawnsInventoryMode.Ignore;
+            return (int)DaysWorthOfFoodCalculator.ApproxDaysWorthOfFood(pawns, foodList, bill.Map.Tile, inventoryMode, Faction.OfPlayer);
         }
 
         throw new NotSupportedException($"{bill.repeatMode} is not supported.");
