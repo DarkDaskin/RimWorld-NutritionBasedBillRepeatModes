@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <TargetNutritionAmount.label>хранить X питательности</TargetNutritionAmount.label>
+  <TargetDaysOfFood.label>хранить еду на X дней</TargetDaysOfFood.label>
+</LanguageData>
