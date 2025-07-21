@@ -1,4 +1,6 @@
 # Nutrition Based Bill Repeat Modes
+[![Steam](https://img.shields.io/badge/steam-%23000000.svg?style=for-the-badge&logo=steam&logoColor=white)](https://steamcommunity.com/sharedfiles/filedetails/?id=3530977220)
+
 ![Preview](About/Preview.png)
 
 This RimWorld mod adds several bill repeat modes for cooking bills:
