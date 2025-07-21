@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <BillRepeatModeDef>
+    <defName>TargetNutritionAmount</defName>
+    <label>keep X nutrition</label>
+    <listOrder>11</listOrder>
+  </BillRepeatModeDef>
+  
+  <BillRepeatModeDef>
+    <defName>TargetDaysOfFood</defName>
+    <label>keep X days of food</label>
+    <listOrder>11</listOrder>
+  </BillRepeatModeDef>  
+    
+</Defs>

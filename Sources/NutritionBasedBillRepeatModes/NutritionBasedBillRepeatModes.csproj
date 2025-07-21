@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <langVersion>latest</langVersion>
+    <Nullable>enable</Nullable>
+    <GameName>RimWorld by Ludeon Studios</GameName>
+    <GameVersion>1.6</GameVersion>
+    <OutDir>..\..\$(GameVersion)\Assemblies\</OutDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="HarmonyTools.Analyzers" Version="1.0.16">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Lib.Harmony.Ref" Version="2.3.6" />
+    <PackageReference Include="UnityModStudio.Build" Version="2.1.13" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <packageId>DarkDaskin.NutritionBasedBillRepeatModes</packageId>
+  <name>Nutrition Based Bill Repeat Modes</name>
+  <author>Dark Daskin</author>
+  <description>
+    Adds several bill repeat modes for cooking bills:
+    - Do until you have X nutrition.
+    - Do until you have X days of food.
+  </description>
+  <supportedVersions>
+    <li>1.6</li>
+  </supportedVersions>
+  <modVersion>1.0.0</modVersion>
+  <modDependencies>
+    <li>
+      <packageId>brrainz.harmony</packageId>
+      <displayName>Harmony</displayName>
+      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+    </li>
+  </modDependencies>
+</ModMetaData>
