@@ -17,7 +17,7 @@ internal static class Patch_Bill_Production_RepeatInfoText
         if (__instance.repeatMode != ModDefs.TargetNutritionAmount && __instance.repeatMode != ModDefs.TargetDaysOfFood)
             return true;
 
-        var amount = Patch_Bill_Production_ShouldDoNow.GetFoodAmount(__instance);
+        var amount = FoodTracker.GetFoodAmount(__instance);
         __result = $"{amount}/{__instance.targetCount}";
 
         return false;

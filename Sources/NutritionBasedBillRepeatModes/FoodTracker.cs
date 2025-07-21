@@ -1,0 +1,127 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using RimWorld;
+using RimWorld.Planet;
+using Verse;
+
+namespace NutritionBasedBillRepeatModes;
+
+public static class FoodTracker
+{
+    private static readonly List<ThingDef> FoodDefs = DefDatabase<ThingDef>.AllDefs.Where(def => def.IsNutritionGivingIngestible && def.ingestible.HumanEdible).ToList();
+
+    public static bool CountFoodsOutsideStorage { get; set; } =
+        LoadedModManager.GetMod<Mod>().GetSettings<ModSettings>().CountFoodsOutsideStorage;
+
+    public static int GetFoodAmount(Bill_Production bill)
+    {
+        var foods = CountFoods(bill);
+
+        if (bill.repeatMode == ModDefs.TargetNutritionAmount)
+        {
+            var totalNutrition = foods.Sum(p => p.thingDef.ingestible.CachedNutrition * p.count);
+            return (int)totalNutrition;
+        }
+
+        if (bill.repeatMode == ModDefs.TargetDaysOfFood)
+        {
+            var pawns = bill.Map.mapPawns.AllHumanlikeSpawned.Where(pawn =>
+                pawn.Faction == Faction.OfPlayer || pawn.HostFaction == Faction.OfPlayer).ToList();
+            var foodList = foods.Select(p =>
+            {
+                var thing = ThingMaker.MakeThing(p.thingDef);
+                thing.stackCount = p.count;
+                return thing;
+            }).ToList();
+            // TODO: Extract only relevant bits of code from this method
+            var inventoryMode = bill.includeEquipped ? IgnorePawnsInventoryMode.DontIgnore : IgnorePawnsInventoryMode.Ignore;
+            return (int)DaysWorthOfFoodCalculator.ApproxDaysWorthOfFood(pawns, foodList, bill.Map.Tile, inventoryMode, Faction.OfPlayer);
+        }
+
+        throw new NotSupportedException($"{bill.repeatMode} is not supported.");
+    }
+
+    // Roughly the same logic as in RecipeWorkerCounter.CountProducts, but for FoodDefs instead of the recipe product.
+    private static IEnumerable<(ThingDef thingDef, int count)> CountFoods(Bill_Production bill)
+    {
+        var includeSlotGroup = bill.GetIncludeSlotGroup();
+        var isBillFastPath = includeSlotGroup == null &&
+                             bill is
+                             {
+                                 includeEquipped: false, limitToAllowedStuff: false, hpRange: { min: 0, max: 1 },
+                                 qualityRange: { min: QualityCategory.Awful, max: QualityCategory.Legendary }
+                             };
+
+        foreach (var foodDef in FoodDefs)
+        {
+            var count = 0;
+
+            // Fast path
+            if (!CountFoodsOutsideStorage && foodDef.CountAsResource && isBillFastPath)
+            {
+                count = bill.Map.resourceCounter.GetCount(foodDef) + GetCarriedCount(bill, foodDef);
+                if (count > 0)
+                    yield return (foodDef, count);
+
+                continue;
+            }
+
+            if (includeSlotGroup == null)
+            {
+                count = bill.recipe.WorkerCounter.CountValidThings(bill.Map.listerThings.ThingsOfDef(foodDef), bill, foodDef);
+
+                count += GetCarriedCount(bill, foodDef);
+
+                if (foodDef.Minifiable)
+                {
+                    var minifiedThings = bill.Map.listerThings.ThingsInGroup(ThingRequestGroup.MinifiedThing);
+                    foreach (var thing in minifiedThings)
+                        count += CountThing(thing, bill, foodDef);
+                }
+
+                foreach (var haulSource in bill.Map.haulDestinationManager.AllHaulSourcesListForReading)
+                    foreach (var thing in haulSource.GetDirectlyHeldThings())
+                        count += CountThing(thing, bill, foodDef);
+            }
+            else
+            {
+                foreach (var thing in includeSlotGroup.HeldThings)
+                    count += CountThing(thing, bill, foodDef);
+            }
+
+            if (bill.includeEquipped)
+            {
+                foreach (var pawn in bill.Map.mapPawns.FreeColonistsSpawned)
+                    foreach (var thing in pawn.EquippedWornOrInventoryThings)
+                        count += CountThing(thing, bill, foodDef);
+            }
+
+            if (count > 0)
+                yield return (foodDef, count);
+        }
+    }
+
+    private static int GetCarriedCount(Bill_Production bill, ThingDef foodDef)
+    {
+        var carriedCount = 0;
+        foreach (var pawn in bill.Map.mapPawns.FreeColonistsSpawned)
+        {
+            var carriedThing = pawn.carryTracker.CarriedThing;
+            if (carriedThing != null)
+                carriedCount += CountThing(carriedThing, bill, foodDef);
+        }
+        return carriedCount;
+    }
+
+    private static int CountThing(Thing thing, Bill_Production bill, ThingDef foodDef)
+    {
+        if (thing is MinifiedThing minifiedThing && bill.recipe.WorkerCounter.CountValidThing(minifiedThing.InnerThing, bill, foodDef))
+            return minifiedThing.stackCount * minifiedThing.InnerThing.stackCount;
+
+        if (bill.recipe.WorkerCounter.CountValidThing(thing, bill, foodDef))
+            return thing.stackCount;
+
+        return 0;
+    }
+}

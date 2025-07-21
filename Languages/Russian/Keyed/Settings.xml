@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <NutritionBasedBillRepeatModes.SettingsCategory>Nutrition Based Bill Repeat Modes</NutritionBasedBillRepeatModes.SettingsCategory>
+  <NutritionBasedBillRepeatModes.CountFoodsOutsideStorage>Учитывать еду вне хранилищ</NutritionBasedBillRepeatModes.CountFoodsOutsideStorage>
+  <NutritionBasedBillRepeatModes.CountFoodsOutsideStorage_Desc>Вся еда будет учитываться для расчёта итоговой питательности, а не только та, которая хранится на складе или в складских постройках. Может отрицательно влиять на производительность.</NutritionBasedBillRepeatModes.CountFoodsOutsideStorage_Desc>
+</LanguageData>

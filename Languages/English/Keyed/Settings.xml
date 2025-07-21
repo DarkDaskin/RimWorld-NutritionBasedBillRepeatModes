@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <NutritionBasedBillRepeatModes.SettingsCategory>Nutrition Based Bill Repeat Modes</NutritionBasedBillRepeatModes.SettingsCategory>
+  <NutritionBasedBillRepeatModes.CountFoodsOutsideStorage>Count foods outside storage</NutritionBasedBillRepeatModes.CountFoodsOutsideStorage>
+  <NutritionBasedBillRepeatModes.CountFoodsOutsideStorage_Desc>All foods would be considered for total nutrition calculations, not only these stored in stockpiles or storage buildings. May negatively affect performance.</NutritionBasedBillRepeatModes.CountFoodsOutsideStorage_Desc>
+</LanguageData>

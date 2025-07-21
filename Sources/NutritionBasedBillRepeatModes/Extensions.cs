@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Verse;
 
 namespace NutritionBasedBillRepeatModes;
 
@@ -31,4 +32,6 @@ internal static class Extensions
             startIndex = index + 1;
         }
     }
+
+    public static TaggedString TranslateNS(this string key) => $"{nameof(NutritionBasedBillRepeatModes)}.{key}".Translate();
 }
